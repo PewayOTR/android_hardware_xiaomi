@@ -35,7 +35,8 @@
 #define LOG_TAG "libqtivibratoreffect.xiaomi"
 
 #include <android-base/logging.h>
-#include <filesystem>
+#include <sys/stat.h>
+#include <string>
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
@@ -52,7 +53,7 @@ std::unordered_map<uint32_t, effect_stream> sEffectStreams;
 std::unordered_map<uint32_t, std::vector<int8_t>> sEffectFifoData;
 
 std::unique_ptr<effect_stream> readEffectStreamFromFile(uint32_t uniqueEffectId) {
-    std::filesystem::path filePath;
+    std::string filePath;
 
     uint32_t effectId = uniqueEffectId & ~kPrimitiveMask;
 
@@ -70,7 +71,13 @@ std::unique_ptr<effect_stream> readEffectStreamFromFile(uint32_t uniqueEffectId)
         return nullptr;
     }
 
-    std::uint32_t fileSize = std::filesystem::file_size(filePath);
+    struct stat fileStat {};
+    if (stat(filePath.c_str(), &fileStat) != 0 || fileStat.st_size <= 0) {
+        LOG(ERROR) << "Failed to get file size for effect " << effectId;
+        return nullptr;
+    }
+
+    std::uint32_t fileSize = static_cast<std::uint32_t>(fileStat.st_size);
 
     std::vector<int8_t> fifoData(fileSize);
     data.read(reinterpret_cast<char*>(fifoData.data()), fileSize);

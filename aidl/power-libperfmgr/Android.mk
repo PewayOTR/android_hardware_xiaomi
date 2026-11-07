@@ -1,3 +1,4 @@
+ifneq ($(TARGET_DEVICE),beryllium)
 #
 # Copyright (C) 2021 The LineageOS Project
 #
@@ -62,5 +63,6 @@ LOCAL_VINTF_FRAGMENTS := android.hardware.power-service.xiaomi.xml
 
 include $(BUILD_EXECUTABLE)
 
+endif
 endif
 endif
